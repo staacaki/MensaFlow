@@ -1,0 +1,720 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MensaFlow – Kantinen-App</title>
+<style>
+:root {
+  --green: #176b4d;
+  --light: #e5f5ee;
+  --bg: #f6f7f9;
+  --white: #fff;
+  --text: #17202a;
+  --muted: #66717d;
+  --border: #dfe3e7;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+header {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.logo { font-size: 23px; font-weight: bold; color: var(--green); }
+nav { display: flex; gap: 8px; flex-wrap: wrap; }
+nav button {
+  border: 0;
+  background: transparent;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+nav button:hover, nav button.active {
+  background: var(--light);
+  color: var(--green);
+}
+main { max-width: 1100px; margin: auto; padding: 30px 18px; }
+.hero {
+  background: var(--green);
+  color: white;
+  border-radius: 20px;
+  padding: 35px;
+  margin-bottom: 25px;
+}
+.hero h1 { font-size: 38px; margin: 10px 0; }
+.hero p { line-height: 1.6; }
+.controls { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0; }
+select, input, textarea {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  font: inherit;
+  background: white;
+  max-width: 100%;
+}
+button { font: inherit; }
+.primary {
+  background: var(--green);
+  color: white;
+  border: 0;
+  padding: 12px 17px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.primary:hover { opacity: .88; }
+.secondary {
+  background: var(--light);
+  color: var(--green);
+  border: 0;
+  padding: 12px 17px;
+  border-radius: 9px;
+  cursor: pointer;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(230px,1fr));
+  gap: 18px;
+}
+.card, .panel {
+  background: white;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  margin-bottom: 15px;
+}
+.card h3 { margin: 12px 0 8px; }
+.tag {
+  display: inline-block;
+  background: var(--light);
+  color: var(--green);
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+}
+.price { font-size: 21px; font-weight: bold; }
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.cart {
+  background: #17202a;
+  color: white;
+  border-radius: 15px;
+  padding: 18px;
+  margin-top: 20px;
+}
+.notice {
+  background: var(--light);
+  color: var(--green);
+  padding: 14px;
+  border-radius: 10px;
+  margin: 15px 0;
+}
+label { display: block; margin: 10px 0; }
+label input, label select, label textarea {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+}
+.hidden { display: none !important; }
+table { width: 100%; border-collapse: collapse; }
+th, td {
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  padding: 10px;
+}
+@media(max-width:600px) {
+  .hero h1 { font-size: 29px; }
+  header { align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🥗 MensaFlow</div>
+  <nav>
+    <button class="active" data-view="menu">Speiseplan</button>
+    <button data-view="orders">Bestellungen</button>
+    <button data-view="survey">Feedback</button>
+    <button data-view="admin">Mitarbeiter</button>
+  </nav>
+</header>
+
+<main>
+<section id="menuView">
+  <div class="hero">
+    <div>DEINE MENSA · DEIN MENÜ</div>
+    <h1>Vorbestellen.<br>Abholen. Genießen.</h1>
+    <p>Wähle dein Lieblingsessen und bestelle es bequem vor.</p>
+  </div>
+
+  <div class="controls">
+    <select id="day">
+      <option value="0">Montag</option>
+      <option value="1">Dienstag</option>
+      <option value="2">Mittwoch</option>
+      <option value="3">Donnerstag</option>
+      <option value="4">Freitag</option>
+    </select>
+    <select id="filter">
+      <option value="all">Alle Gerichte</option>
+      <option value="vegetarian">Vegetarisch</option>
+      <option value="vegan">Vegan</option>
+    </select>
+  </div>
+
+  <div id="menuGrid" class="grid"></div>
+
+  <div id="cart" class="cart hidden">
+    <div class="row">
+      <div>
+        <strong id="cartTitle"></strong>
+        <p id="cartDetail"></p>
+      </div>
+      <div>
+        <strong id="cartPrice"></strong>
+        <button class="primary" id="checkout">Vorbestellen</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ordersView" class="hidden">
+  <div class="panel">
+    <h2>📋 Meine Bestellungen</h2>
+    <div id="ordersList">Noch keine Bestellungen.</div>
+  </div>
+</section>
+
+<section id="surveyView" class="hidden">
+  <div class="panel">
+    <h2>⭐ Feedback</h2>
+    <p>Wie hat dir dein Essen geschmeckt?</p>
+    <label>Bestellnummer
+      <input id="surveyOrder" placeholder="MF-1234">
+    </label>
+    <label>Bewertung
+      <select id="rating">
+        <option value="5">⭐⭐⭐⭐⭐ Sehr gut</option>
+        <option value="4">⭐⭐⭐⭐ Gut</option>
+        <option value="3">⭐⭐⭐ Okay</option>
+        <option value="2">⭐⭐ Nicht so gut</option>
+        <option value="1">⭐ Schlecht</option>
+      </select>
+    </label>
+    <label>Kommentar
+      <textarea id="comment" rows="4"
+        placeholder="Dein Feedback ..."></textarea>
+    </label>
+    <button class="primary" id="sendSurvey">
+      Feedback absenden
+    </button>
+    <div id="surveyMsg"></div>
+  </div>
+</section>
+
+<section id="adminView" class="hidden">
+  <div id="adminLogin" class="panel">
+    <h2>🔒 Mitarbeiter-Login</h2>
+    <p>Dieser Bereich ist passwortgeschützt und nur für Mitarbeiter vorgesehen.</p>
+    <form id="staffLoginForm">
+      <label>Mitarbeiter-Passwort
+        <input id="staffPassword" type="password" autocomplete="current-password" required placeholder="Passwort eingeben">
+      </label>
+      <button class="primary" type="submit">Anmelden</button>
+    </form>
+    <div id="loginMsg" role="status" aria-live="polite"></div>
+  </div>
+
+  <div id="adminContent" class="hidden">
+  <div class="row" style="margin-bottom:15px">
+    <h2>👩‍🍳 Mitarbeiterbereich</h2>
+    <button type="button" class="secondary" id="staffLogout">Abmelden</button>
+  </div>
+  <div class="panel">
+    <p>Hier kannst du den aktuellen Speiseplan als CSV-Datei hochladen.</p>
+    <p>Spalten: Tag;Gericht;Beschreibung;Preis;Kategorie</p>
+    <input type="file" id="csv" accept=".csv,text/csv">
+    <div class="controls">
+      <button type="button" class="secondary" id="deleteMenu">Gesamten Speiseplan löschen</button>
+      <button type="button" class="secondary" id="resetMenu">Standard-Speiseplan wiederherstellen</button>
+    </div>
+    <div id="importMsg"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Google Sheets</h2>
+    <label>Apps-Script-Web-App-URL
+      <input id="sheetUrl" type="url"
+        placeholder="https://script.google.com/macros/s/.../exec">
+    </label>
+    <button class="secondary" id="saveSheet">
+      Verbindung speichern
+    </button>
+    <div id="sheetMsg"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Aktueller Speiseplan</h2>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Tag</th>
+            <th>Gericht</th>
+            <th>Kategorie</th>
+            <th>Preis</th>
+          </tr>
+        </thead>
+        <tbody id="adminTable"></tbody>
+      </table>
+    </div>
+  </div>
+  </div>
+</section>
+</main>
+
+<script>
+const defaultMenus = [
+  {day:0,name:"Hähnchen-Schnitzel",desc:"Mit Kartoffelspalten und Salat",price:6.5,cat:"Fleisch"},
+  {day:0,name:"Gemüse-Curry",desc:"Saisonales Gemüse mit Reis",price:5.4,cat:"vegetarian"},
+  {day:0,name:"Linsen-Dal",desc:"Rote Linsen mit Spinat und Reis",price:5.2,cat:"vegan"},
+  {day:1,name:"Pasta Bolognese",desc:"Tomatensauce und Rind",price:5.9,cat:"Fleisch"},
+  {day:1,name:"Käsespätzle",desc:"Mit Röstzwiebeln",price:5.5,cat:"vegetarian"},
+  {day:2,name:"Seelachsfilet",desc:"Mit Kräutersauce und Kartoffeln",price:6.9,cat:"Fisch"},
+  {day:2,name:"Falafel Bowl",desc:"Hummus, Couscous und Gemüse",price:5.7,cat:"vegan"},
+  {day:3,name:"Rindergulasch",desc:"Mit Spätzle und Rotkohl",price:7.2,cat:"Fleisch"},
+  {day:3,name:"Ofengemüse",desc:"Mit Feta und Kräuterdip",price:5.3,cat:"vegetarian"},
+  {day:4,name:"Pizza Margherita",desc:"Tomate und Mozzarella",price:5.4,cat:"vegetarian"},
+  {day:4,name:"Tofu Teriyaki",desc:"Mit Wokgemüse und Reis",price:5.8,cat:"vegan"}
+];
+
+
+let menus = [...defaultMenus];
+
+// Gespeicherten Speiseplan beim Öffnen laden
+try {
+    const savedMenu = localStorage.getItem("mensaflow_speiseplan");
+
+    if (savedMenu) {
+        const parsedMenu = JSON.parse(savedMenu);
+
+        if (Array.isArray(parsedMenu)) {
+            // Auch ein leerer Plan ist ein gespeicherter Zustand (z. B. nach Löschen).
+            menus = parsedMenu;
+        }
+    }
+} catch (error) {
+    console.error("Speiseplan konnte nicht geladen werden:", error);
+}
+
+let cart = null;
+let orders = [];
+// Die URL wird im Browser dauerhaft gespeichert (auch nach dem Schließen der Seite).
+// Sie bleibt jedoch auf dieses Gerät und diesen Browser beschränkt.
+const SHEET_URL_STORAGE_KEY = "mensaflow_google_sheets_webapp_url";
+let sheetUrl = "";
+try {
+  sheetUrl = localStorage.getItem(SHEET_URL_STORAGE_KEY) || "";
+} catch (error) {
+  console.warn("Gespeicherte Google-Sheets-URL konnte nicht geladen werden.", error);
+}
+let staffAuthenticated = false;
+// Es wird nur ein SHA-256-Prüfwert gespeichert, nicht das Klartext-Passwort.
+// Hinweis: Ein clientseitiger Login ist kein echter Zugriffsschutz; für Sicherheit muss Apps Script serverseitig prüfen.
+const STAFF_PASSWORD_HASH = "c828ee9c00fb1aab39d723c4395f8ea603f24c57ce9e9c84aa40593662f6c871";
+
+async function sha256Hex(value) {
+  const bytes = new TextEncoder().encode(value);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
+}
+
+const euro = n => n.toLocaleString("de-DE", {
+  style:"currency", currency:"EUR"
+});
+
+function render() {
+  const day = Number(document.getElementById("day").value);
+  const filter = document.getElementById("filter").value;
+  const list = menus.filter(m =>
+    m.day === day &&
+    (filter === "all" || m.cat === filter)
+  );
+
+  const grid = document.getElementById("menuGrid");
+  grid.replaceChildren();
+
+  if (!list.length) {
+    grid.textContent = "Keine Gerichte für diesen Tag vorhanden.";
+  }
+
+  list.forEach(menu => {
+    const card = document.createElement("article");
+    card.className = "card";
+
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = menu.cat === "vegan" ? "Vegan" :
+      menu.cat === "vegetarian" ? "Vegetarisch" : menu.cat;
+
+    const title = document.createElement("h3");
+    title.textContent = menu.name;
+
+    const desc = document.createElement("p");
+    desc.textContent = menu.desc;
+
+    const row = document.createElement("div");
+    row.className = "row";
+
+    const price = document.createElement("strong");
+    price.className = "price";
+    price.textContent = euro(menu.price);
+
+    const button = document.createElement("button");
+    button.className = "primary";
+    button.textContent = "Auswählen";
+    button.addEventListener("click", () => {
+      cart = {...menu, qty:1};
+      renderCart();
+    });
+
+    row.append(price, button);
+    card.append(tag, title, desc, row);
+    grid.append(card);
+  });
+
+  renderAdmin();
+}
+
+function renderCart() {
+  const el = document.getElementById("cart");
+  if (!cart) {
+    el.classList.add("hidden");
+    return;
+  }
+  el.classList.remove("hidden");
+  document.getElementById("cartTitle").textContent =
+    cart.name;
+  document.getElementById("cartDetail").textContent =
+    "1 Portion · Abholung nach Absprache";
+  document.getElementById("cartPrice").textContent =
+    euro(cart.price);
+}
+
+function show(view) {
+  ["menu","orders","survey","admin"].forEach(v => {
+    document.getElementById(v+"View")
+      .classList.toggle("hidden", v !== view);
+  });
+  document.querySelectorAll("[data-view]").forEach(b => {
+    b.classList.toggle("active", b.dataset.view === view);
+  });
+  if (view === "admin") {
+    document.getElementById("adminLogin").classList.toggle("hidden", staffAuthenticated);
+    document.getElementById("adminContent").classList.toggle("hidden", !staffAuthenticated);
+    if (!staffAuthenticated) {
+      document.getElementById("staffPassword").value = "";
+      document.getElementById("loginMsg").textContent = "";
+    }
+  }
+  if (view === "orders") renderOrders();
+}
+
+function renderOrders() {
+  const list = document.getElementById("ordersList");
+  list.replaceChildren();
+
+  if (!orders.length) {
+    list.textContent = "Noch keine Bestellungen.";
+    return;
+  }
+
+  orders.forEach(o => {
+    const card = document.createElement("div");
+    card.className = "card";
+    const title = document.createElement("strong");
+    title.textContent = o.id + " · " + o.menu;
+    const details = document.createElement("p");
+    details.textContent =
+      o.name + " · " + o.date + " · " + o.time +
+      " · " + euro(o.total);
+    card.append(title, details);
+    list.append(card);
+  });
+}
+
+function renderAdmin() {
+  const body = document.getElementById("adminTable");
+  body.replaceChildren();
+  const days = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag"];
+
+  menus.forEach(m => {
+    const tr = document.createElement("tr");
+    [days[m.day],m.name,m.cat,euro(m.price)].forEach(value => {
+      const td = document.createElement("td");
+      td.textContent = value;
+      tr.append(td);
+    });
+    body.append(tr);
+  });
+}
+
+async function sendToSheets(type, data) {
+  if (!sheetUrl) return;
+  try {
+    const response = await fetch(sheetUrl, {
+      method:"POST",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({type, ...data})
+    });
+    if (!response.ok) throw new Error("Übertragung fehlgeschlagen");
+  } catch (error) {
+    console.error(error);
+    alert("Die Daten konnten nicht an Google Sheets gesendet werden.");
+  }
+}
+
+document.querySelectorAll("[data-view]").forEach(button => {
+  button.addEventListener("click", () => show(button.dataset.view));
+});
+
+document.getElementById("staffLoginForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  const enteredPassword = document.getElementById("staffPassword").value;
+  let enteredHash = "";
+  try {
+    enteredHash = await sha256Hex(enteredPassword);
+  } catch (error) {
+    document.getElementById("loginMsg").textContent = "Die Passwortprüfung wird in diesem Browser nicht unterstützt.";
+    return;
+  }
+  if (enteredHash === STAFF_PASSWORD_HASH) {
+    staffAuthenticated = true;
+    document.getElementById("adminLogin").classList.add("hidden");
+    document.getElementById("adminContent").classList.remove("hidden");
+    document.getElementById("loginMsg").textContent = "";
+    document.getElementById("staffPassword").value = "";
+  } else {
+    document.getElementById("loginMsg").textContent = "Falsches Passwort. Bitte erneut versuchen.";
+    document.getElementById("staffPassword").value = "";
+    document.getElementById("staffPassword").focus();
+  }
+});
+
+document.getElementById("staffLogout").addEventListener("click", () => {
+  staffAuthenticated = false;
+  show("menu");
+});
+
+document.getElementById("day").addEventListener("change", render);
+document.getElementById("filter").addEventListener("change", render);
+
+document.getElementById("checkout").addEventListener("click", async () => {
+  if (!cart) return;
+
+  const name = prompt("Dein Name:");
+  if (!name || !name.trim()) return;
+
+  const date = document.getElementById("day").selectedOptions[0].text;
+  const time = prompt("Abholzeit (z. B. 12:30):","12:30");
+  if (!time) return;
+
+  const id = "MF-" + Math.floor(1000 + Math.random()*9000);
+  const order = {
+    id, name:name.trim(), menu:cart.name,
+    qty:cart.qty, total:cart.price*cart.qty,
+    date, time
+  };
+
+  orders.unshift(order);
+  await sendToSheets("order", order);
+
+  alert("Bestellung " + id + " wurde aufgegeben.");
+  cart = null;
+  renderCart();
+  show("orders");
+});
+
+document.getElementById("sendSurvey").addEventListener("click", async () => {
+  const data = {
+    orderId:document.getElementById("surveyOrder").value,
+    rating:document.getElementById("rating").value,
+    comment:document.getElementById("comment").value
+  };
+
+  if (!data.orderId.trim()) {
+    alert("Bitte eine Bestellnummer eingeben.");
+    return;
+  }
+
+  await sendToSheets("feedback", data);
+  document.getElementById("surveyMsg").innerHTML =
+    '<div class="notice">✓ Vielen Dank für dein Feedback!</div>';
+  document.getElementById("surveyOrder").value = "";
+  document.getElementById("comment").value = "";
+});
+
+// CSV-Zeilen sicher einlesen: unterstützt Semikolon oder Komma sowie Anführungszeichen.
+function parseCsvLine(line, delimiter) {
+  const fields = [];
+  let value = "";
+  let quoted = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"' && quoted && line[i + 1] === '"') {
+      value += '"'; i++;
+    } else if (ch === '"') {
+      quoted = !quoted;
+    } else if (ch === delimiter && !quoted) {
+      fields.push(value.trim()); value = "";
+    } else {
+      value += ch;
+    }
+  }
+  fields.push(value.trim());
+  return fields;
+}
+
+function parseCsv(text) {
+  const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/).filter(line => line.trim());
+  if (!lines.length) return [];
+  const delimiter = (lines[0].split(";").length >= lines[0].split(",").length) ? ";" : ",";
+  const rows = lines.map(line => parseCsvLine(line, delimiter));
+  const first = rows[0].map(x => x.toLowerCase());
+  const hasHeader = first.some(x => /tag|gericht|beschreibung|preis|kategorie/.test(x));
+  const dataRows = hasHeader ? rows.slice(1) : rows;
+  const days = ["montag","dienstag","mittwoch","donnerstag","freitag"];
+  const imported = [];
+
+  dataRows.forEach((r, index) => {
+    if (r.length < 5) return;
+    const dayText = (r[0] || "").toLowerCase();
+    let day = days.findIndex(d => dayText.includes(d));
+    if (day < 0 && /^[0-4]$/.test(dayText)) day = Number(dayText);
+    const priceText = (r[3] || "").replace(/[€\s]/g, "").replace(/\.(?=\d{3}(?:\D|$))/g, "").replace(",", ".");
+    const price = Number(priceText);
+    if (day < 0 || !(r[1] || "").trim() || !Number.isFinite(price) || price < 0) return;
+    imported.push({ day, name:r[1].trim(), desc:(r[2] || "").trim(), price, cat:(r[4] || "").trim() || "Sonstiges" });
+  });
+  return imported;
+}
+
+document.getElementById("csv").addEventListener("change", event => {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const imported = parseCsv(String(reader.result || ""));
+    if (imported.length) {
+      menus = imported;
+
+      // Importierten Speiseplan dauerhaft in diesem Browser speichern.
+      try {
+        localStorage.setItem("mensaflow_speiseplan", JSON.stringify(menus));
+        document.getElementById("importMsg").textContent =
+          `Speiseplan erfolgreich importiert und gespeichert: ${imported.length} Gerichte.`;
+      } catch (error) {
+        document.getElementById("importMsg").textContent =
+          "Speiseplan importiert, aber nicht dauerhaft speicherbar. Bitte prüfe die Browser-Einstellungen.";
+        console.error("Speiseplan konnte nicht gespeichert werden:", error);
+      }
+
+      cart = null;
+      render();
+      renderCart();
+    } else {
+      document.getElementById("importMsg").textContent =
+        "Keine gültigen Gerichte erkannt. Prüfe die CSV-Spalten und das Format (Tag;Gericht;Beschreibung;Preis;Kategorie). Der bisherige Speiseplan blieb unverändert.";
+    }
+    event.target.value = "";
+  };
+  reader.onerror = () => {
+    document.getElementById("importMsg").textContent = "Die CSV-Datei konnte nicht gelesen werden.";
+  };
+  reader.readAsText(file, "UTF-8");
+});
+
+document.getElementById("deleteMenu").addEventListener("click", () => {
+  if (!confirm("Möchtest du wirklich ALLE Gerichte löschen? Der Speiseplan bleibt auch nach dem Neuladen leer. Du kannst jederzeit eine neue CSV-Datei hochladen.")) return;
+  menus = [];
+  cart = null;
+  try {
+    // Ein leeres Array wird bewusst gespeichert, damit der gelöschte Plan nicht beim Neuladen zurückkehrt.
+    localStorage.setItem("mensaflow_speiseplan", JSON.stringify(menus));
+    document.getElementById("importMsg").textContent = "Alle Gerichte wurden gelöscht. Der leere Speiseplan wurde gespeichert. Du kannst jederzeit einen neuen Wochenplan als CSV hochladen.";
+  } catch (error) {
+    document.getElementById("importMsg").textContent = "Der Speiseplan wurde geleert, konnte aber nicht dauerhaft gespeichert werden. Prüfe die Browser-Speichereinstellungen.";
+  }
+  render();
+  renderCart();
+  document.getElementById("csv").value = "";
+});
+
+document.getElementById("resetMenu").addEventListener("click", () => {
+  if (!confirm("Den importierten Speiseplan entfernen und den ursprünglichen Standard-Speiseplan wiederherstellen?")) return;
+  menus = [...defaultMenus];
+
+  // Gespeicherten CSV-Speiseplan ebenfalls entfernen.
+  try {
+    localStorage.removeItem("mensaflow_speiseplan");
+  } catch (error) {
+    console.error("Gespeicherter Speiseplan konnte nicht entfernt werden:", error);
+  }
+
+  cart = null;
+  render();
+  renderCart();
+  document.getElementById("importMsg").textContent = "Der ursprüngliche Standard-Speiseplan wurde wiederhergestellt.";
+  document.getElementById("csv").value = "";
+});
+
+const sheetUrlInput = document.getElementById("sheetUrl");
+const sheetMsg = document.getElementById("sheetMsg");
+
+// Beim Öffnen der App eine zuvor gespeicherte URL automatisch einsetzen.
+if (sheetUrl) {
+  sheetUrlInput.value = sheetUrl;
+  sheetMsg.textContent = "Gespeicherte Google-Sheets-Verbindung geladen.";
+}
+
+document.getElementById("saveSheet").addEventListener("click", () => {
+  const url = sheetUrlInput.value.trim();
+  if (!url.startsWith("https://script.google.com/")) {
+    sheetMsg.textContent =
+      "Bitte eine gültige Apps-Script-Web-App-URL eintragen.";
+    return;
+  }
+  try {
+    localStorage.setItem(SHEET_URL_STORAGE_KEY, url);
+    sheetUrl = url;
+    sheetMsg.textContent =
+      "Google-Sheets-Verbindung dauerhaft in diesem Browser gespeichert.";
+  } catch (error) {
+    sheetMsg.textContent =
+      "Speichern im Browser nicht möglich. Bitte prüfe die Browser-Einstellungen.";
+  }
+});
+
+render();
+</script>
+</body>
+</html>
