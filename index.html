@@ -698,19 +698,33 @@ if (sheetUrl) {
 
 document.getElementById("saveSheet").addEventListener("click", () => {
   const url = sheetUrlInput.value.trim();
+
   if (!url.startsWith("https://script.google.com/")) {
     sheetMsg.textContent =
       "Bitte eine gültige Apps-Script-Web-App-URL eintragen.";
     return;
   }
+
   try {
+    // URL im Browser speichern
     localStorage.setItem(SHEET_URL_STORAGE_KEY, url);
-    sheetUrl = url;
+
+    // Prüfen, ob die URL wirklich gespeichert wurde
+    const savedUrl = localStorage.getItem(SHEET_URL_STORAGE_KEY);
+
+    if (savedUrl !== url) {
+      throw new Error("Die URL konnte nicht korrekt gespeichert werden.");
+    }
+
+    sheetUrl = savedUrl;
+
     sheetMsg.textContent =
-      "Google-Sheets-Verbindung dauerhaft in diesem Browser gespeichert.";
+      "Google-Sheets-Verbindung erfolgreich gespeichert und überprüft.";
   } catch (error) {
+    console.error("Fehler beim Speichern der Google-Sheets-URL:", error);
+
     sheetMsg.textContent =
-      "Speichern im Browser nicht möglich. Bitte prüfe die Browser-Einstellungen.";
+      "Speichern fehlgeschlagen. Bitte prüfe die Browser-Einstellungen.";
   }
 });
 
