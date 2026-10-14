@@ -331,11 +331,18 @@ let orders = [];
 // Die URL wird im Browser dauerhaft gespeichert (auch nach dem Schließen der Seite).
 // Sie bleibt jedoch auf dieses Gerät und diesen Browser beschränkt.
 const SHEET_URL_STORAGE_KEY = "mensaflow_google_sheets_webapp_url";
-let sheetUrl = "";
+// Zentrale Google-Sheets-Verbindung für alle Nutzer
+const DEFAULT_SHEET_URL = "https://script.google.com/macros/s/AKfycbzZTFThePQjo9P422EJAGHItj17n_e0FQSHeIRBAHzygFejHuhu82LsCkdkfqoJGL2j/exec";
+
+let sheetUrl = DEFAULT_SHEET_URL;
+
 try {
-  sheetUrl = localStorage.getItem(SHEET_URL_STORAGE_KEY) || "";
+  const savedUrl = localStorage.getItem(SHEET_URL_STORAGE_KEY);
+  if (savedUrl) {
+    sheetUrl = savedUrl;
+  }
 } catch (error) {
-  console.warn("Gespeicherte Google-Sheets-URL konnte nicht geladen werden.", error);
+  console.warn("Lokale Google-Sheets-URL konnte nicht geladen werden.", error);
 }
 let staffAuthenticated = false;
 // Es wird nur ein SHA-256-Prüfwert gespeichert, nicht das Klartext-Passwort.
